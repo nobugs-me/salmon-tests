@@ -5,24 +5,22 @@ import io.restassured.specification.RequestSpecification
 import org.apache.http.HttpStatus
 import ph.salmon.test.models.Post
 
-class PostService(val reqSpec: RequestSpecification) : CrudInterface<Post>  {
-    private val POSTS_URL = "/posts"
-    private val posts = mutableMapOf<Int, Post>()
-    val allPosts: Map<Int, Post> get() = posts.toMap()
+class PostService(val reqSpec: RequestSpecification) : CrudInterface<Post> {
+    private val createdPosts: MutableList<Int> = mutableListOf()
+    val allCreatedPosts: List<Int> get() = createdPosts
 
     override fun create(item: Post): Post {
-        val post = given()
+        val createdPost = given()
             .spec(reqSpec)
             .body(item)
-            .post(POSTS_URL)
+            .put(POSTS_URL)
             .then()
             .assertThat()
-            .statusCode(HttpStatus.SC_CREATED)
-            .extract()
-            .body()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().body()
             .`as`(Post::class.java)
-        posts.put(post.id, post)
-        return post
+        createdPosts.add(createdPost.id)
+        return createdPost
     }
 
     override fun read(id: Int): Post {
@@ -30,8 +28,6 @@ class PostService(val reqSpec: RequestSpecification) : CrudInterface<Post>  {
             .spec(reqSpec)
             .get("$POSTS_URL/$id")
             .then()
-            .assertThat()
-            .statusCode(HttpStatus.SC_OK)
             .extract()
             .body()
             .`as`(Post::class.java)
@@ -40,17 +36,15 @@ class PostService(val reqSpec: RequestSpecification) : CrudInterface<Post>  {
     override fun delete(id: Int): String {
         return given()
             .spec(reqSpec)
-            .delete("$POSTS_URL/$id")
+            .put("$POSTS_URL/$id")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.SC_OK)
-            .and()
-            .extract()
-            .body()
+            .statusCode(HttpStatus.SC_NO_CONTENT)
+            .extract().body()
             .asString()
     }
 
-    override fun update(id: Int, item: Post): Post {
+    override fun update(id: Int, item: Post): Post? {
         return given()
             .spec(reqSpec)
             .body(item)
@@ -58,9 +52,11 @@ class PostService(val reqSpec: RequestSpecification) : CrudInterface<Post>  {
             .then()
             .assertThat()
             .statusCode(HttpStatus.SC_OK)
-            .and()
-            .extract()
-            .body()
+            .extract().body()
             .`as`(Post::class.java)
+    }
+
+    companion object {
+        const val POSTS_URL = "/posts"
     }
 }

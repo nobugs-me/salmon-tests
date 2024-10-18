@@ -1,7 +1,9 @@
 package ph.salmon.test.models
 
+// + data class
+
 data class Post(
-    var id: Int,
+    val id: Int,
     val userId: Int,
     val title: String,
     val body: String

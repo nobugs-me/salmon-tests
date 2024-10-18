@@ -18,9 +18,10 @@ open class BaseApiTest {
         @BeforeAll
         fun setUp(): Unit {
             RestAssured.baseURI = BASE_URL
-            RestAssured.filters(RequestLoggingFilter(),
-                ResponseLoggingFilter(),
-                AllureRestAssured())
+            RestAssured.filters(
+                RequestLoggingFilter(), ResponseLoggingFilter(),
+                AllureRestAssured()
+            )
         }
     }
 

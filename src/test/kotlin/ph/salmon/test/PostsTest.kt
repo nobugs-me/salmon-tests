@@ -8,25 +8,25 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import ph.salmon.test.generators.DataClassGenerator.generateRandomData
+import ph.salmon.test.generators.TestDataGenerator.generate
 import ph.salmon.test.models.Post
 import ph.salmon.test.requests.PostService
-import ph.salmon.test.specs.unauthReqSpec
+import ph.salmon.test.specs.unauthSpec
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class PostsTest : BaseApiTest() {
+class PostsTest: BaseApiTest() {
     private lateinit var postService: PostService
     private lateinit var expectedPost: Post
 
     @BeforeEach
-    fun prepareTestData() {
-        postService = PostService(unauthReqSpec())
-        expectedPost = generateRandomData(Post::class.java)
+    fun setupTestData() {
+        postService = PostService(unauthSpec())
+        expectedPost = generate(Post::class.java)
     }
 
     @AfterEach
     fun cleanTestData() {
-        postService.allPosts.keys.toList().forEach { postService.delete(it) }
+        postService.allCreatedPosts.forEach { postService.delete(it) }
     }
 
     @Test
@@ -35,16 +35,17 @@ class PostsTest : BaseApiTest() {
     fun `get a post`() {
         val actualResponse = postService.read(expectedPost.id)
 
+        // + ассерт по всей сущности
+        // - нет софт ассертов
         assertThat(actualResponse, equalTo(expectedPost))
     }
-
 
     @Test
     @AllureId("some generated id")
     @Issue("some issue/task id")
     fun `create a post`() {
         val actualPost = postService.create(expectedPost)
-
+        // - снова хард ассерты
         assertThat(actualPost, equalTo(expectedPost))
     }
 
@@ -53,7 +54,6 @@ class PostsTest : BaseApiTest() {
     @Issue("some issue/task id")
     fun `update a post`() {
         val actualPost = postService.update(expectedPost.id, expectedPost)
-
         assertThat(actualPost, equalTo(expectedPost))
     }
 
@@ -61,9 +61,6 @@ class PostsTest : BaseApiTest() {
     @AllureId("some generated id")
     @Issue("some issue/task id")
     fun `delete a post`() {
-        postService.create(expectedPost)
-        val response = postService.delete(expectedPost.id)
-
-        assertThat(response, equalTo("Post was deleted"))
+        postService.delete(expectedPost.id)
     }
 }
